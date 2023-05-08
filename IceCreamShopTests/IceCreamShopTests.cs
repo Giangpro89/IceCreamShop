@@ -24,7 +24,10 @@ public class IceCreamShopTests
             .AddFlavor(Flavor.Vanilla)
             .AddFlavor(Flavor.Chocolate)
             .CreateOrder();
+
         var dish = GetIceCreamShop().Submit(order);
+
+        dish.IsVegan.Should().BeFalse();
         dish.Cone.Flavors.Should().HaveCount(3);
     }
 
@@ -37,8 +40,12 @@ public class IceCreamShopTests
             .AddFlavor(Flavor.Strawberry)
             .AddFlavor(Flavor.Vanilla)
             .CreateOrder();
+
         var dish = GetIceCreamShop().Submit(order);
-        dish.Cone.Flavors.Should().HaveCount(2);
+
+        dish.Should().BeVegan()
+            .And.HaveConeType(ConeType.Cup)
+            .And.HaveFlavorsCount(2);
     }
 
     [Fact]
@@ -51,6 +58,7 @@ public class IceCreamShopTests
             .AddFlavor(Flavor.Vanilla)
             .AddFlavor(Flavor.Chocolate)
             .CreateOrder();
+
         var placeOrder = () => GetIceCreamShop().Submit(order);
         placeOrder.Should().Throw<VeganMismatchException>();
     }
@@ -65,6 +73,7 @@ public class IceCreamShopTests
             .AddFlavor(Flavor.Strawberry)
             .AddFlavor(Flavor.Chocolate)
             .CreateOrder();
+
         var placeOrder = () => GetIceCreamShop().Submit(order);
         placeOrder.Should().Throw<PortionSizeException>();
     }
@@ -73,12 +82,14 @@ public class IceCreamShopTests
     public void Small_order_fulfilled_when_stock_is_limited()
     {
         var order = new IceCreamOrderBuilder()
-            .WithCone(ConeType.Cup, PortionSize.Large)
+            .WithCone(ConeType.Biscuit, PortionSize.Large)
             .AddFlavor(Flavor.Vanilla)
             .AddFlavor(Flavor.Strawberry)
             .CreateOrder();
         var dish = GetIceCreamShopWithLimitedFlavorsStock(maxFlavors: 2).Submit(order);
-        dish.Cone.Flavors.Should().HaveCount(2);
+
+        dish.Should().HaveConeType(ConeType.Biscuit)
+            .And.HaveFlavorsCount(2);
     }
 
     [Fact]
@@ -94,7 +105,6 @@ public class IceCreamShopTests
         placeOrder.Should().Throw<OutOfStockException>();
     }
 
-
     [Fact]
     public void Flavor_cannot_be_added_after_topping()
     {
@@ -108,6 +118,31 @@ public class IceCreamShopTests
         putMore.Should().Throw<FlavorAfterToppingException>();
     }
 
+    [Fact]
+    public void Two_orders_are_fulfilled_sequentially()
+    {
+        var order1 = new IceCreamOrderBuilder()
+            .VeganOnly()
+            .WithCone(ConeType.Cup, PortionSize.Large)
+            .AddFlavor(Flavor.Vanilla)
+            .CreateOrder();
+
+        var order2 = new IceCreamOrderBuilder()
+            .WithCone(ConeType.Biscuit, PortionSize.Medium)
+            .AddFlavor(Flavor.Chocolate)
+            .AddFlavor(Flavor.Strawberry)
+            .CreateOrder();
+
+        var dish1 = GetIceCreamShop().Submit(order1);
+        var dish2 = GetIceCreamShop().Submit(order2);
+
+        dish1.Should().BeVegan()
+            .And.HaveConeType(ConeType.Cup)
+            .And.HaveFlavorsCount(1);
+        dish2.Should().NotBeVegan()
+            .And.HaveConeType(ConeType.Biscuit)
+            .And.HaveFlavorsCount(2);
+    }
 
     private IceCreamShop GetIceCreamShop(IIceCreamStock? iceCreamStock = null)
     {
