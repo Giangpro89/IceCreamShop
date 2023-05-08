@@ -138,9 +138,9 @@ public class IceCreamShopTests
     }
 }
 
-public interface IIceCreamOrderWithoutConeBuilder
+public interface IIceCreamBasicOrderBuilder
 {
-    IIceCreamOrderWithoutConeBuilder VeganOnly();
+    IIceCreamBasicOrderBuilder VeganOnly();
 
     IIceCreamOrderWithConeBuilder WithCone(ConeType coneType, PortionSize size);
 }
@@ -154,11 +154,11 @@ public interface IIceCreamOrderWithConeBuilder
     Order CreateOrder();
 }
 
-public class IceCreamOrderBuilder : IIceCreamOrderWithoutConeBuilder
+public class IceCreamOrderBuilder : IIceCreamBasicOrderBuilder
 {
     private bool _isVegan;
 
-    public IIceCreamOrderWithoutConeBuilder VeganOnly()
+    public IIceCreamBasicOrderBuilder VeganOnly()
     {
         _isVegan = true;
         return this;
