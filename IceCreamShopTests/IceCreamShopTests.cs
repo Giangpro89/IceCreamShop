@@ -159,4 +159,13 @@ public class IceCreamShopTests
         // assert
         putMore.Should().Throw<FlavorAfterToppingException>();
     }
+
+    [Fact]
+    public void Two_orders_are_fulfilled_sequentially()
+    {
+        // TODO
+        // 1. define 2 different orders
+        // 2. submit them both to the IceCreamShop
+        // 3. assert that both IceCreamDish received IceCreamDish matches the order
+    }
 }
